@@ -1,31 +1,38 @@
-<div class="col-md-3 col-sm-6 mb-4">
-    <div class="card product-card position-relative">
+<div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-4">
+    <div class="product-card">
         @if($product->discount_percent > 0)
-            <span class="badge bg-danger badge-sale">-{{ $product->discount_percent }}%</span>
+            <span class="badge-sale">-{{ $product->discount_percent }}%</span>
         @endif
-        <a href="{{ route('products.show', $product->slug) }}">
-            <img src="{{ $product->image ?: 'https://placehold.co/300x200?text=Laptop' }}"
-                 onerror="this.src='https://placehold.co/300x200?text=Laptop'"
-                 class="card-img-top product-img" alt="{{ $product->name }}">
+        @if($product->is_new)
+            <span class="badge-new">NEW</span>
+        @endif
+
+        <a href="{{ route('products.show', $product->slug) }}" class="product-img-wrap">
+            <img src="{{ $product->image ?: 'https://placehold.co/400x300?text=Laptop' }}"
+                 onerror="this.src='https://placehold.co/400x300?text=Laptop'"
+                 alt="{{ $product->name }}">
         </a>
-        <div class="card-body">
-            <h6 class="card-title" style="min-height: 48px;">
-                <a href="{{ route('products.show', $product->slug) }}" class="text-dark text-decoration-none">
-                    {{ Str::limit($product->name, 50) }}
+
+        <div class="product-body">
+            <h6 class="product-title">
+                <a href="{{ route('products.show', $product->slug) }}">
+                    {{ Str::limit($product->name, 48) }}
                 </a>
             </h6>
-            <small class="text-muted">{{ $product->cpu }}</small><br>
-            <small class="text-muted">{{ $product->ram }} | {{ $product->storage }}</small>
-            <div class="mt-2">
-                <span class="price">{{ number_format($product->display_price) }}đ</span>
+            <div class="product-specs">
+                <div><i class="bi bi-cpu"></i>{{ Str::limit($product->cpu, 28) }}</div>
+                <div><i class="bi bi-memory"></i>{{ $product->ram }} • {{ $product->storage }}</div>
+            </div>
+            <div class="mb-2">
+                <span class="price">{{ number_format($product->display_price) }}₫</span>
                 @if($product->sale_price)
-                    <br><span class="price-old">{{ number_format($product->price) }}đ</span>
+                    <span class="price-old">{{ number_format($product->price) }}₫</span>
                 @endif
             </div>
-            <form action="{{ route('cart.add', $product->id) }}" method="POST" class="mt-2">
+            <form action="{{ route('cart.add', $product->id) }}" method="POST">
                 @csrf
-                <button class="btn btn-sm btn-primary w-100">
-                    <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                <button class="btn-cart" {{ $product->stock <= 0 ? 'disabled' : '' }}>
+                    <i class="bi bi-cart-plus"></i> {{ $product->stock > 0 ? 'Thêm vào giỏ' : 'Hết hàng' }}
                 </button>
             </form>
         </div>
