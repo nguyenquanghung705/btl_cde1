@@ -46,7 +46,7 @@
                 <p><strong>Phương thức:</strong> {{ strtoupper($order->payment_method) }}</p>
                 <p><strong>Hiện tại:</strong> <span class="badge bg-info">{{ $order->status_label }}</span></p>
                 <form action="{{ route('admin.orders.updateStatus', $order) }}" method="POST">
-                    @csrf
+                    @csrf @method('PATCH')
                     <select name="status" class="form-select mb-2">
                         <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Chờ xác nhận</option>
                         <option value="confirmed" {{ $order->status == 'confirmed' ? 'selected' : '' }}>Đã xác nhận</option>

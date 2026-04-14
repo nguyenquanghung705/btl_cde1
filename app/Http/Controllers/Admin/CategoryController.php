@@ -3,34 +3,38 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\CategoryRequest;
 use App\Models\Category;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class CategoryController extends Controller
 {
-    public function index()
+    public function index(): View
     {
-        $categories = Category::latest()->paginate(15);
+        $categories = Category::withCount('products')->latest()->paginate(15);
+
         return view('admin.categories.index', compact('categories'));
     }
 
-    public function store(Request $request)
+    public function store(CategoryRequest $request): RedirectResponse
     {
-        $request->validate(['name' => 'required|string|max:100']);
-        Category::create($request->only(['name', 'description']));
-        return back()->with('success', 'Đã thêm danh mục');
+        Category::create($request->validated());
+
+        return back()->with('success', 'Đã thêm danh mục.');
     }
 
-    public function update(Request $request, Category $category)
+    public function update(CategoryRequest $request, Category $category): RedirectResponse
     {
-        $request->validate(['name' => 'required|string|max:100']);
-        $category->update($request->only(['name', 'description']));
-        return back()->with('success', 'Đã cập nhật');
+        $category->update($request->validated());
+
+        return back()->with('success', 'Đã cập nhật danh mục.');
     }
 
-    public function destroy(Category $category)
+    public function destroy(Category $category): RedirectResponse
     {
         $category->delete();
-        return back()->with('success', 'Đã xóa');
+
+        return back()->with('success', 'Đã xóa danh mục.');
     }
 }

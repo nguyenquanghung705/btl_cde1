@@ -6,53 +6,47 @@ use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\ProductQuery;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class ProductController extends Controller
 {
-    public function index(Request $request)
+    /** @var ProductQuery */
+    protected $productQuery;
+
+    public function __construct(ProductQuery $productQuery)
     {
-        $query = Product::with(['brand', 'category'])->where('status', 1);
-
-        if ($request->filled('keyword')) {
-            $query->where('name', 'like', '%' . $request->keyword . '%');
-        }
-        if ($request->filled('brand')) {
-            $query->where('brand_id', $request->brand);
-        }
-        if ($request->filled('category')) {
-            $query->where('category_id', $request->category);
-        }
-        if ($request->filled('min_price')) {
-            $query->where('price', '>=', $request->min_price);
-        }
-        if ($request->filled('max_price')) {
-            $query->where('price', '<=', $request->max_price);
-        }
-
-        $sort = $request->get('sort', 'newest');
-        switch ($sort) {
-            case 'price_asc': $query->orderBy('price', 'asc'); break;
-            case 'price_desc': $query->orderBy('price', 'desc'); break;
-            case 'name': $query->orderBy('name', 'asc'); break;
-            default: $query->latest();
-        }
-
-        $products = $query->paginate(12)->withQueryString();
-        $brands = Brand::where('status', 1)->get();
-        $categories = Category::where('status', 1)->get();
-
-        return view('frontend.products.index', compact('products', 'brands', 'categories'));
+        $this->productQuery = $productQuery;
     }
 
-    public function show($slug)
+    public function index(Request $request): View
     {
-        $product = Product::with(['brand', 'category'])->where('slug', $slug)->firstOrFail();
+        $products = $this->productQuery->fromRequest($request)
+            ->paginate(12)
+            ->withQueryString();
+
+        return view('frontend.products.index', [
+            'products' => $products,
+            'brands' => Brand::active()->get(),
+            'categories' => Category::active()->get(),
+        ]);
+    }
+
+    public function show(Product $product): View
+    {
+        abort_if(!$product->status, 404);
+
         $product->increment('views');
-        $related = Product::where('category_id', $product->category_id)
+
+        $related = Product::active()
+            ->inCategory($product->category_id)
             ->where('id', '!=', $product->id)
-            ->where('status', 1)
-            ->limit(4)->get();
+            ->limit(4)
+            ->get();
+
+        $product->load(['brand', 'category']);
+
         return view('frontend.products.show', compact('product', 'related'));
     }
 }

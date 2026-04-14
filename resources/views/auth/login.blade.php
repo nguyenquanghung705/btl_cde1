@@ -51,9 +51,7 @@
                 <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
                 <label class="form-check-label" for="remember">Ghi nhớ đăng nhập</label>
             </div>
-            @if (Route::has('password.request'))
-                <a href="{{ route('password.request') }}">Quên mật khẩu?</a>
-            @endif
+            <a href="#" onclick="event.preventDefault(); alert('Vui lòng liên hệ hotline 1900-xxxx để khôi phục mật khẩu.');">Quên mật khẩu?</a>
         </div>
 
         <button type="submit" class="btn-auth">

@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Admin') | Laptop Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
     <style>
         body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
         .sidebar { background: #2c3e50; min-height: 100vh; color: #ecf0f1; }
@@ -75,8 +75,8 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('assets/js/chart.min.js') }}"></script>
 @stack('scripts')
 </body>
 </html>

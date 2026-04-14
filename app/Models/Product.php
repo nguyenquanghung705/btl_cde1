@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -18,15 +19,27 @@ class Product extends Model
         'is_featured', 'is_new', 'views', 'status',
     ];
 
-    public static function boot()
+    protected $casts = [
+        'price' => 'integer',
+        'sale_price' => 'integer',
+        'stock' => 'integer',
+        'views' => 'integer',
+        'weight' => 'float',
+        'is_featured' => 'boolean',
+        'is_new' => 'boolean',
+        'status' => 'boolean',
+    ];
+
+    protected static function booted(): void
     {
-        parent::boot();
-        static::saving(function ($model) {
-            if (empty($model->slug)) {
-                $model->slug = Str::slug($model->name) . '-' . uniqid();
+        static::saving(function (self $product) {
+            if (empty($product->slug)) {
+                $product->slug = static::generateUniqueSlug($product->name, $product->id);
             }
         });
     }
+
+    // ===== Relations =====
 
     public function category()
     {
@@ -38,14 +51,63 @@ class Product extends Model
         return $this->belongsTo(Brand::class);
     }
 
-    public function getDisplayPriceAttribute()
+    // ===== Scopes =====
+
+    public function scopeActive(Builder $query): Builder
     {
-        return $this->sale_price ?? $this->price;
+        return $query->where('status', 1);
     }
 
-    public function getDiscountPercentAttribute()
+    public function scopeFeatured(Builder $query): Builder
     {
-        if (!$this->sale_price || $this->sale_price >= $this->price) return 0;
-        return round((($this->price - $this->sale_price) / $this->price) * 100);
+        return $query->where('is_featured', 1);
+    }
+
+    public function scopeNew(Builder $query): Builder
+    {
+        return $query->where('is_new', 1);
+    }
+
+    public function scopeInCategory(Builder $query, int $categoryId): Builder
+    {
+        return $query->where('category_id', $categoryId);
+    }
+
+    // ===== Accessors =====
+
+    public function getDisplayPriceAttribute(): int
+    {
+        return (int) ($this->sale_price ?: $this->price);
+    }
+
+    public function getDiscountPercentAttribute(): int
+    {
+        if (!$this->sale_price || $this->sale_price >= $this->price) {
+            return 0;
+        }
+        return (int) round((($this->price - $this->sale_price) / $this->price) * 100);
+    }
+
+    public function getInStockAttribute(): bool
+    {
+        return $this->stock > 0;
+    }
+
+    // ===== Helpers =====
+
+    protected static function generateUniqueSlug(string $name, ?int $ignoreId = null): string
+    {
+        $base = Str::slug($name) ?: 'laptop';
+        $slug = $base;
+        $i = 2;
+
+        while (static::where('slug', $slug)
+            ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
+            ->exists()
+        ) {
+            $slug = $base . '-' . $i++;
+        }
+
+        return $slug;
     }
 }

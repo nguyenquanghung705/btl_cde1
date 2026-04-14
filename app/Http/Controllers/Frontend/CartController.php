@@ -3,69 +3,60 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Frontend\AddToCartRequest;
+use App\Http\Requests\Frontend\UpdateCartRequest;
 use App\Models\Product;
-use Illuminate\Http\Request;
+use App\Services\CartService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class CartController extends Controller
 {
-    public function index()
+    /** @var CartService */
+    protected $cart;
+
+    public function __construct(CartService $cart)
     {
-        $cart = session('cart', []);
-        $products = [];
-        $total = 0;
-        foreach ($cart as $id => $item) {
-            $product = Product::find($id);
-            if (!$product) continue;
-            $price = $product->display_price;
-            $subtotal = $price * $item['quantity'];
-            $products[] = [
-                'product' => $product,
-                'quantity' => $item['quantity'],
-                'price' => $price,
-                'subtotal' => $subtotal,
-            ];
-            $total += $subtotal;
-        }
-        return view('frontend.cart', compact('products', 'total'));
+        $this->cart = $cart;
     }
 
-    public function add(Request $request, $id)
+    public function index(): View
     {
-        $product = Product::findOrFail($id);
-        $cart = session('cart', []);
-        $qty = max(1, (int) $request->input('quantity', 1));
+        $summary = $this->cart->summary();
 
-        if (isset($cart[$id])) {
-            $cart[$id]['quantity'] += $qty;
-        } else {
-            $cart[$id] = ['quantity' => $qty];
-        }
-        session(['cart' => $cart]);
-        return redirect()->route('cart.index')->with('success', 'Đã thêm "' . $product->name . '" vào giỏ hàng');
+        return view('frontend.cart', [
+            'products' => $summary['lines'],
+            'total' => $summary['total'],
+        ]);
     }
 
-    public function update(Request $request, $id)
+    public function add(AddToCartRequest $request, Product $product): RedirectResponse
     {
-        $cart = session('cart', []);
-        $qty = max(1, (int) $request->input('quantity', 1));
-        if (isset($cart[$id])) {
-            $cart[$id]['quantity'] = $qty;
-            session(['cart' => $cart]);
-        }
+        $this->cart->add($product->id, $request->quantity());
+
+        return redirect()
+            ->route('cart.index')
+            ->with('success', 'Đã thêm "' . $product->name . '" vào giỏ hàng.');
+    }
+
+    public function update(UpdateCartRequest $request, Product $product): RedirectResponse
+    {
+        $this->cart->update($product->id, (int) $request->input('quantity'));
+
         return redirect()->route('cart.index');
     }
 
-    public function remove($id)
+    public function remove(Product $product): RedirectResponse
     {
-        $cart = session('cart', []);
-        unset($cart[$id]);
-        session(['cart' => $cart]);
-        return redirect()->route('cart.index')->with('success', 'Đã xóa khỏi giỏ');
+        $this->cart->remove($product->id);
+
+        return redirect()->route('cart.index')->with('success', 'Đã xóa khỏi giỏ.');
     }
 
-    public function clear()
+    public function clear(): RedirectResponse
     {
-        session()->forget('cart');
+        $this->cart->clear();
+
         return redirect()->route('cart.index');
     }
 }

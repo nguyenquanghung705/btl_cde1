@@ -3,81 +3,68 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ProductRequest;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class ProductController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): View
     {
-        $query = Product::with(['brand', 'category']);
-        if ($request->filled('keyword')) {
-            $query->where('name', 'like', '%' . $request->keyword . '%');
-        }
-        $products = $query->latest()->paginate(15)->withQueryString();
+        $products = Product::with(['brand', 'category'])
+            ->when($request->filled('keyword'), function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->input('keyword') . '%');
+            })
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
         return view('admin.products.index', compact('products'));
     }
 
-    public function create()
+    public function create(): View
     {
-        $brands = Brand::all();
-        $categories = Category::all();
-        return view('admin.products.create', compact('brands', 'categories'));
+        return view('admin.products.create', [
+            'brands' => Brand::all(),
+            'categories' => Category::all(),
+        ]);
     }
 
-    public function store(Request $request)
+    public function store(ProductRequest $request): RedirectResponse
     {
-        $data = $this->validateData($request);
-        Product::create($data);
-        return redirect()->route('admin.products.index')->with('success', 'Đã thêm sản phẩm');
+        Product::create($request->validated());
+
+        return redirect()
+            ->route('admin.products.index')
+            ->with('success', 'Đã thêm sản phẩm.');
     }
 
-    public function edit(Product $product)
+    public function edit(Product $product): View
     {
-        $brands = Brand::all();
-        $categories = Category::all();
-        return view('admin.products.edit', compact('product', 'brands', 'categories'));
+        return view('admin.products.edit', [
+            'product' => $product,
+            'brands' => Brand::all(),
+            'categories' => Category::all(),
+        ]);
     }
 
-    public function update(Request $request, Product $product)
+    public function update(ProductRequest $request, Product $product): RedirectResponse
     {
-        $data = $this->validateData($request, $product->id);
-        $product->update($data);
-        return redirect()->route('admin.products.index')->with('success', 'Đã cập nhật');
+        $product->update($request->validated());
+
+        return redirect()
+            ->route('admin.products.index')
+            ->with('success', 'Đã cập nhật sản phẩm.');
     }
 
-    public function destroy(Product $product)
+    public function destroy(Product $product): RedirectResponse
     {
         $product->delete();
-        return back()->with('success', 'Đã xóa sản phẩm');
-    }
 
-    private function validateData(Request $request, $id = null)
-    {
-        return $request->validate([
-            'name' => 'required|string|max:200',
-            'category_id' => 'required|exists:categories,id',
-            'brand_id' => 'required|exists:brands,id',
-            'model' => 'nullable|string|max:100',
-            'cpu' => 'nullable|string|max:100',
-            'ram' => 'nullable|string|max:50',
-            'storage' => 'nullable|string|max:100',
-            'gpu' => 'nullable|string|max:100',
-            'screen' => 'nullable|string|max:100',
-            'os' => 'nullable|string|max:50',
-            'weight' => 'nullable|numeric',
-            'battery' => 'nullable|string|max:50',
-            'price' => 'required|numeric|min:0',
-            'sale_price' => 'nullable|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'warranty' => 'nullable|string|max:50',
-            'image' => 'nullable|string|max:500',
-            'description' => 'nullable|string',
-            'is_featured' => 'nullable|boolean',
-            'is_new' => 'nullable|boolean',
-            'status' => 'nullable|boolean',
-        ]);
+        return back()->with('success', 'Đã xóa sản phẩm.');
     }
 }
