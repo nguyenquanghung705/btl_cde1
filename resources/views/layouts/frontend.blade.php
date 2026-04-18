@@ -17,8 +17,8 @@
 <div class="topbar">
     <div class="container d-flex justify-content-between flex-wrap">
         <div>
-            <a href="#"><i class="bi bi-telephone-fill"></i> Hotline: 1900-xxxx</a>
-            <a href="#"><i class="bi bi-envelope-fill"></i> support@laptopshop.com</a>
+            <a href="#"><i class="bi bi-telephone-fill"></i> Hotline: 1900-0000</a>
+            <a href="#"><i class="bi bi-envelope-fill"></i> hhh@laptopshop.com</a>
         </div>
         <div class="d-none d-md-block">
             <a href="#"><i class="bi bi-truck"></i> Giao hàng toàn quốc</a>
@@ -123,14 +123,14 @@
             </div>
             <div class="col-md-3 mb-4">
                 <h5>Liên hệ</h5>
-                <p class="mb-2"><i class="bi bi-geo-alt"></i> 123 Đường ABC, Hà Nội</p>
-                <p class="mb-2"><i class="bi bi-telephone"></i> 1900-xxxx</p>
-                <p class="mb-2"><i class="bi bi-envelope"></i> support@laptopshop.com</p>
+                <p class="mb-2"><i class="bi bi-geo-alt"></i> Trịnh Văn Bô , Hà Nội</p>
+                <p class="mb-2"><i class="bi bi-telephone"></i> 1900-0000</p>
+                <p class="mb-2"><i class="bi bi-envelope"></i> hhh@laptopshop.com</p>
                 <p class="mb-0"><i class="bi bi-clock"></i> 8:00 - 22:00 hàng ngày</p>
             </div>
         </div>
         <hr style="border-color:rgba(255,255,255,0.1)">
-        <p class="text-center mb-0" style="opacity:.7">&copy; {{ date('Y') }} Laptop Shop — Bài tập lớn Laravel.</p>
+        <p class="text-center mb-0" style="opacity:.7">&copy; {{ date('Y') }} Laptop Shop — Hùng Hậu Hoàng.</p>
     </div>
 </footer>
 
